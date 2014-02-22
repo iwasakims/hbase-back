@@ -25,11 +25,11 @@
  * limitations under the License.
  */
 -->
-
   <title>Enabling Dapper-like Tracing in HBase</title>
 
   <para>
-    <link xlink:href="https://issues.apache.org/jira/browse/HBASE-6449">HBASE-6449</link> added    support for tracing requests through HBase, using the open source tracing library,
+    <link xlink:href="https://issues.apache.org/jira/browse/HBASE-6449">HBASE-6449</link>
+    added support for tracing requests through HBase, using the open source tracing library,
     <link xlink:href="http://github.com/cloudera/htrace">HTrace</link>. 
     Setting up tracing is quite simple,
     however it currently requires some very minor changes to your client code
@@ -39,17 +39,21 @@
   <section xml:id="tracing.spanreceivers">
     <title>SpanReceivers</title>
     <para>
-      The tracing system works by collecting information in structs called ‘Spans’.
-      It is up to you to choose how you want to receive this information by implementing the
-      <classname>SpanReceiver</classname> interface, which defines one method:
-      <programlisting>public void receiveSpan(Span span);</programlisting>
+      The tracing system works by collecting information in structs called 'Spans'.
+      It is up to you to choose how you want to receive this information
+      by implementing the <classname>SpanReceiver</classname> interface,
+      which defines one method:
+<programlisting>
+  public void receiveSpan(Span span);
+</programlisting>
       This method serves as a callback whenever a span is completed.
       HTrace allows you to use as many SpanReceivers as you want
       so you can easily send trace information to multiple destinations.
     </para>
 
     <para>
-      Configure what SpanReceivers you’d like to use by putting a comma separated list of the
+      Configure what SpanReceivers you'd like to us
+      by putting a comma separated list of the
       fully-qualified class name of classes implementing
       <classname>SpanReceiver</classname> in <filename>hbase-site.xml</filename>
       property: <varname>hbase.trace.spanreceiver.classes</varname>.
@@ -79,34 +83,81 @@
   <section xml:id="tracing.client.modifications">
     <title>Client Modifications</title>
     <para>
-      Currently, you must turn on tracing in your client code.
-      To do this, you simply turn on tracing for requests you think are interesting,
-      and turn it off when the request is done.
-    </para>
-
-    <para>
+      In order to turn on tracing in your client code,
+      you must initialize the module sending spans to receiver
+      once per client process.
+<programlisting>
+  private SpanReceiverHost spanReceiverHost;
+  
+  ...
+  
+    spanReceiverHost = SpanReceiverHost.getInstance(conf);
+</programlisting>
+      Then you simply start tracing span before requests you think are interesting,
+      and close it when the request is done.
       For example, if you wanted to trace all of your get operations,
       you change this:
 <programlisting>
-HTable table = new HTable(...);
-Get get = new Get(...);
+  HTable table = new HTable(...);
+  Get get = new Get(...);
 </programlisting>
       into:
 <programlisting>
-Span getSpan = Trace.startSpan(“doing get”, Sampler.ALWAYS);
-try {
-  HTable table = new HTable(...);
-  Get get = new Get(...);
-...
-} finally {
-  getSpan.stop();
-}
+  TraceScope traceScope = Trace.startSpan("doing get", Sampler.ALWAYS);
+  try {
+    HTable table = new HTable(...);
+    Get get = new Get(...);
+    ...
+  } finally {
+    traceScope.close();
+  }
 </programlisting>
-      If you wanted to trace half of your ‘get’ operations, you would pass in:
-      <programlisting>new ProbabilitySampler(0.5)</programlisting>
+      If you wanted to trace half of your 'get' operations, you would pass in:
+<programlisting>
+  new ProbabilitySampler(0.5)
+</programlisting>
       in lieu of <varname>Sampler.ALWAYS</varname>
       to <classname>Trace.startSpan()</classname>.
       See the HTrace <filename>README</filename> for more information on Samplers.
     </para>
   </section>
+
+  <section xml:id="tracing.client.shell">
+    <title>Tracing from HBase Shell</title>
+    <para>
+      You can use <command>trace</command> command
+      for tracing requests from HBase Shell.
+      <command>trace 'start'</command> command turns on tracing and 
+      <command>trace 'stop'</command> command turns off tracing.
+<programlisting>
+  hbase(main):001:0> trace 'start'
+  hbase(main):002:0> put 'test', 'row1', 'f:', 'val1'   # traced commands
+  hbase(main):003:0> trace 'stop'
+</programlisting>
+    </para>
+    <para>
+      <command>trace 'start'</command> and 
+      <command>trace 'stop'</command> always
+      returns boolean value representing 
+      if or not there is ongoing tracing.
+      As a result, <command>trace 'stop'</command>
+      returns false on suceess.
+      <command>trace 'status'</command>
+      just returns if or not tracing is turned on.
+<programlisting>
+  hbase(main):001:0> trace 'start'
+  => true
+  
+  hbase(main):002:0> trace 'status'
+  => true
+  
+  hbase(main):003:0> trace 'stop'
+  => false
+  
+  hbase(main):004:0> trace 'status'
+  => false
+</programlisting>
+    </para>
+  </section>
+
 </appendix>
