@@ -131,25 +131,27 @@
   
   ...
   
-    spanReceiverHost = SpanReceiverHost.getInstance(conf);
+    Configuration conf = HBaseConfiguration.create();
+    SpanReceiverHost spanReceiverHost = SpanReceiverHost.getInstance(conf);
 ]]></programlisting>
       Then you simply start tracing span before requests you think are interesting,
       and close it when the request is done.
       For example, if you wanted to trace all of your get operations,
       you change this:
 <programlisting><![CDATA[
-  HTable table = new HTable(...);
-  Get get = new Get(...);
+  HTable table = new HTable(conf, "t1");
+  Get get = new Get(Bytes.toBytes("r1"));
+  Result res = table.get(get);
 ]]></programlisting>
       into:
 <programlisting><![CDATA[
-  TraceScope traceScope = Trace.startSpan("doing get", Sampler.ALWAYS);
+  TraceScope ts = Trace.startSpan("Gets", Sampler.ALWAYS);
   try {
-    HTable table = new HTable(...);
-    Get get = new Get(...);
-    ...
+    HTable table = new HTable(conf, "t1");
+    Get get = new Get(Bytes.toBytes("r1"));
+    Result res = table.get(get);
   } finally {
-    traceScope.close();
+    ts.close();
   }
 ]]></programlisting>
       If you wanted to trace half of your 'get' operations, you would pass in:
