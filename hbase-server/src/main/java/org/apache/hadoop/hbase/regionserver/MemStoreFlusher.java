@@ -49,9 +49,8 @@ import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.hadoop.hbase.util.HasThread;
 import org.apache.hadoop.hbase.util.Threads;
 import org.apache.hadoop.util.StringUtils;
-import org.cloudera.htrace.Trace;
-import org.cloudera.htrace.TraceScope;
-import org.apache.hadoop.hbase.util.Counter;
+import org.htrace.Trace;
+import org.htrace.TraceScope;
 
 import com.google.common.base.Preconditions;
 
