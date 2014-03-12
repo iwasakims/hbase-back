@@ -224,7 +224,8 @@ COLUMN                                        CELL
     <section xml:id="rowkey.regionsplits"><title>Relationship Between RowKeys and Region Splits</title>
     <para>If you pre-split your table, it is <emphasis>critical</emphasis> to understand how your rowkey will be distributed across
     the region boundaries.  As an example of why this is important, consider the example of using displayable hex characters as the
-    lead position of the key (e.g., "0000000000000000" to "ffffffffffffffff").  Running those key ranges through <code>Bytes.split</code>
+    lead position of the key (e.g., "0000000000000000" to "ffffffffffffffff").
+    Running those key ranges through <code>Bytes.split</code>
     (which is the split strategy used when creating regions in <code>HBaseAdmin.createTable(byte[] startKey, byte[] endKey, numRegions)</code>
     for 10 regions will generate the following splits...
     </para>
