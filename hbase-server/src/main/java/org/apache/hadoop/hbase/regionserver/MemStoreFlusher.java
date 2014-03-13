@@ -49,6 +49,7 @@ import org.apache.hadoop.hbase.util.EnvironmentEdgeManager;
 import org.apache.hadoop.hbase.util.HasThread;
 import org.apache.hadoop.hbase.util.Threads;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.hadoop.hbase.util.Counter;
 import org.htrace.Trace;
 import org.htrace.TraceScope;
 
