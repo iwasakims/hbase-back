@@ -22,25 +22,17 @@ import org.apache.hadoop.hbase.Server;
 import org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher;
 
 /**
- * ZooKeeper-based implementation of {@link ConsensusProvider}.
+ * ZooKeeper-based implementation of {@link org.apache.hadoop.hbase.ConsensusProvider}.
  */
 @InterfaceAudience.Private
-public class ZkConsensusProvider implements ConsensusProvider {
+public class ZkConsensusProvider extends BaseConsensusProvider {
   private Server server;
   private ZooKeeperWatcher watcher;
-  
+
   @Override
   public void initialize(Server server) {
     this.server = server;
     this.watcher = server.getZooKeeper();
-  }
-
-  @Override
-  public void start() {
-  }
-
-  @Override
-  public void stop() {
   }
 
   @Override

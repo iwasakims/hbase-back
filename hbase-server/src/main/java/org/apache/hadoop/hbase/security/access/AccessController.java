@@ -872,6 +872,22 @@ public class AccessController extends BaseRegionObserver
   public void postDeleteTableHandler(ObserverContext<MasterCoprocessorEnvironment> c,
       TableName tableName) throws IOException {}
 
+   @Override
+  public void preTruncateTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName)
+      throws IOException {
+    requirePermission("truncateTable", tableName, null, null, Action.ADMIN, Action.CREATE);
+  }
+  @Override
+  public void postTruncateTable(ObserverContext<MasterCoprocessorEnvironment> c,
+      TableName tableName) throws IOException {
+  }
+  @Override
+  public void preTruncateTableHandler(ObserverContext<MasterCoprocessorEnvironment> c,
+      TableName tableName) throws IOException {}
+  @Override
+  public void postTruncateTableHandler(ObserverContext<MasterCoprocessorEnvironment> c,
+      TableName tableName) throws IOException {}
+
   @Override
   public void preModifyTable(ObserverContext<MasterCoprocessorEnvironment> c, TableName tableName,
       HTableDescriptor htd) throws IOException {
@@ -1492,7 +1508,7 @@ public class AccessController extends BaseRegionObserver
       Action.READ, Action.WRITE);
     if (!authResult.isAllowed() && cellFeaturesEnabled && !compatibleEarlyTermination) {
       authResult.setAllowed(checkCoveringPermission(OpType.CHECK_AND_PUT, env, row, families,
-        HConstants.LATEST_TIMESTAMP, Action.READ, Action.WRITE));
+        HConstants.LATEST_TIMESTAMP, Action.READ));
       authResult.setReason("Covering cell set");
     }
     logResult(authResult);
@@ -1530,7 +1546,7 @@ public class AccessController extends BaseRegionObserver
       Action.READ, Action.WRITE);
     if (!authResult.isAllowed() && cellFeaturesEnabled && !compatibleEarlyTermination) {
       authResult.setAllowed(checkCoveringPermission(OpType.CHECK_AND_DELETE, env, row, families,
-        HConstants.LATEST_TIMESTAMP, Action.READ, Action.WRITE));
+        HConstants.LATEST_TIMESTAMP, Action.READ));
       authResult.setReason("Covering cell set");
     }
     logResult(authResult);
@@ -1604,7 +1620,7 @@ public class AccessController extends BaseRegionObserver
     AuthResult authResult = permissionGranted(OpType.INCREMENT, user, env, families,
       Action.WRITE);
     if (!authResult.isAllowed() && cellFeaturesEnabled && !compatibleEarlyTermination) {
-      authResult.setAllowed(checkCoveringPermission(OpType.APPEND, env, increment.getRow(),
+      authResult.setAllowed(checkCoveringPermission(OpType.INCREMENT, env, increment.getRow(),
         families, increment.getTimeRange().getMax(), Action.WRITE));
       authResult.setReason("Covering cell set");
     }
